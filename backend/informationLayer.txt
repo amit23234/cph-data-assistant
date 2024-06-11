@@ -1,0 +1,110 @@
+I. Basic Information:
+    1. Curry Pizza House gets revenue from 7 platforms: Toast, Olo, Doordash, UberEats, Grubhub, EZ Caters, Snackpass, Chowmill, Waiters.com. These are the 'sales databases'.
+    2. Each of the platforms have their own databases such as Toast -> 'toast', Olo -> 'olo_orders_final', Doordash -> 'dd_transactions', UberEats -> 'ue_transactions', Grubhub -> 'grubhub_orders_final', EZ Caters -> 'ezcaters_orders_final', Snackpass -> 'snackpass_payouts', Chowmill -> 'chowmill_orders_final', Waiters.com -> 'waiter_orders_final'.
+    3. Columns for 'toast' table: order_id, toast_order_id, order_date, store_location, source, subtotal, tip, tax, discount, total, coupon, cx_first_name, cx_last_name, cx_phone, cx_email, date_added_timestamp.
+    4. Columns for 'olo_orders_final' table: order_id, source_order_id, order_date, store_location, source, subtotal, tip, tax, discount, total, coupon, cx_olo_ref, cx_first_name, cx_last_name, cx_phone_number, cx_email_address, cx_is_guest, cx_allow_email, olo_batch_id\
+    5. Columns for 'dd_transactions' table: cph_transaction_id, transaction_id, dd_transaction_id, dd_order_id, order_date_time_local, order_date_time_utc, business_id, store_id, store_location, brand, dd_final_order_status, subtotal, tax_subtotal, commission, commission_tax, marketing_fee, tips, credit, debit, tax_remitted_by_dd_to_state, subtotal_for_tax, dd_funded_subtotal_discount_amount, merchant_funded_subtotal_discount_amount, consumer_delivery_fee, consumer_service_fee, consumer_small_order_fee, consumer_legislative_fee, consumer_tip
+    6. Columns for 'ue_transactions' table: cph_transaction_id, order_id, workflow_id, dining_mode, order_channel, payment_mode, order_status, order_date, order_time, order_date_time, customer_uber_membership_status, store_location, sales_excl_tax, tax, sales_incl_tax, refunds_excl_tax, tax_on_refunds, refunds_incl_tax, price_adjustments_excl_tax, tax_on_price_adjustments, promotions_on_items, tax_on_promotions_on_items, promotions_on_delivery, tax_on_promotions_on_delivery, bag_fee, marketing_adjustment, total_sales_after_adjustment_incl_tax, marketplace_fee, marketplace_fee_percentage, delivery_network_fee, order_processing_fee, merchant_fee, tax_on_merchant_fee, tips, other_payments_description, other_payments, marketplace_facilitator_tax, backup_withholding_tax, total_payout, payout_date, markup_amount, markup_tax, retailer_loyalty_id, payout_reference_id.
+    7. Columns for 'grubhub_orders_final' table: order_id, grubhub_order_id, order_channel, fulfillment_type, store_location, order_type, order_description, order_date, order_time, order_date_time, subtotal, delivery_fee, service_fee, service_fee_exemption, flexible_fees, tax_fee, tax_fee_exemption, tip, restaurant_total, commission, delivery_commission, processing_fee, withheld_tax, withheld_tax_exemption, targeted_promotion, rewards, gh_plus_commission
+    8. Columns for 'ezcaters_orders_final' table: order_id, ezcaters_order_id, customer_name, customer_street_address, customer_city, customer_state, customer_zipcode, store_location, store_number, event_date, order_submitted_date, subtotal, promotion, delivery_fee, commission, sales_tax, sales_tax_remitted_by_ezcaters, payment_transaction_fee, adjustments, discounts, misc_fees, preferred_partner_program, ezrewards, caterer_total_due, status, order_paid_by_caterer_payment_method, source, promotion_code, driver, house_account_id, house_account_tax, tip, caterer_adj_name, miles_travelled, delivery_partner, order_type, fulfillment_issues, customer_type, ringfenced_customer, promo_code_redemption, customer_employee_name, customer_phone_number, cust_email, star_rating, customer_review, ordered_items
+    9. Columns for 'snackpass_payouts' table: order_id, order_date, order_status, customer_name, items_ordered, notes, subtotal, customer_surcharge, customer_discounts, up_charge, delivery_charge, taxes_you_owe, taxes_remitted_on_your_behalf, estimated_third_party_taxes, tip, total, third_party_delivery_charge, fax_fee, snackpass_fee, processing_fee, estimated_third_party_fees, customer_to_store_fees, customer_to_snackpass_fees, gift_card_credit, store_credit, net_sales, earnings, estimated_third_party_payout, expected_cash_collected, estimated_payout, actual_payout, payment_method, scheduled_for, refund, fulfillment, source, channel, catering, refunded_by, up_charged_by, cash_accepted_by, created_by, store_location, promotion
+    10. Columns for 'chowmill_orders_final' table: order_id, chowmill_order_number, order_date, store_location, subtotal, tax, commission, payout, quantity_ordered
+    11. Columns for 'waiter_orders_final' table: order_id, waiter_order_id, order_date, store_location, payment, food, tax, tip, delivery, hsco, cbo, total, commission, processing, adjustments, net, deliverer
+    12. Columns for 'dd_campaigns' table: db_id, date, is_self_service, campaign_id, campaign_name, type_of_promotion, campaign_start_date, campaign_end_date, store_id, store_name, currency, orders, sales, promo_fees, customer_discount, average_order_value, return_on_ad_spend, new_customers_acquired, existing_customers_acquired, total_customers_acquired, new_dashpass_customers_acquired, existing_dashpass_customers_acquired, total_dashpass_customers_acquired, brand
+
+II. Logistical Notes:
+    1. The dates in the sales databases are in the format : 'yyyy-mm-dd hh:mm:ss'.
+    2. Whenever total is asked, always send 'subtotal' values.
+    3. Whenever total is asked without specifying the platform, assume that information for all the platforms is being asked.
+    4. What subtotal column means in different tables: waiter_orders_final -> food, ue_transactions -> sales_excl_tax
+
+III. Rules for selecting databases:
+    1. The 'source' in 'toast' database means how the order was placed. the values can be "Switchboard- Phone Take Out", "Switchboard - Dispatch", "Table Service", "Phone Take Out", "Dine In", "No Dining Option", "Walk In To Go". 
+    2. If user asks about 'CallCenter', it means 'Switchboard' orders. Always break down the output in the 2 Switchboard categories.
+    3. If the user asks about dine in customers, then refer to toast database.
+    4. If the user asks about 'dine in' orders or 'in store' orders, then refer to the toast database.
+    5. The 'source' in 'olo_orders_final' database means how the order was placed. the values can be "MobileWeb", "Thanx (Curry Pizza House) - Ordering", "CallCenter", "Thanx (Curry Pizza House) - Mobile Ordering", "Google". 
+    6. If user asks about the 'app' or 'mobile app', it means "Thanx (Curry Pizza House) - Mobile Ordering" source in olo_orders_final database. 
+    7. If the user asks about the website, it means "Thanx (Curry Pizza House) - Ordering" source in olo_orders_final database.
+    8. If the user asks about 'online' orders, then refer to the olo_orders_final database. 
+    9. If the user asks about online customers, then refer to olo_orders_final database.
+    10. If the user asks about 'catering' orders, then refer to ezcaters_orders_final database.
+    11. If the user asks about doordash campaigns or doordash marketing or doordash promotions or doordash codes, then refer to the dd_campaigns database.
+    12. If user asks about 'Pizza Zombie', use the dd_transactions database wherein the brand = 'Pizza Zombie'
+
+IV. Rules for identifying new and repeating customers:
+    1. toast database: To identify customers, use cx_phone as a unique value to a unique customer.
+        i. If a phone number shows up more than once for a required time frame, then that's a repeat customer.
+        ii. If the phone number shows up only once, then that's a new customer.
+    2. olo_orders_final database: To identify customers, use cx_email_address as a unique value to a unique customer.
+        i. If an email address shows up more than once for a required time frame, then that's a repeat customer.
+        ii. If the email address shows up only once, then that's a new customer.
+    3. dd_campaigns:
+        i. new customers acquired -> 'new_customers_acquired' + 'new_dashpass_customers_acquired'
+        ii. existing customers acquired -> 'existing_customers_acquired' + 'existing_dashpass_customers_acquired'
+        iii. Always break down the subcategories when you show final output to the user
+
+VI. Rules about dd_transactions database:
+    1. The order id column is the 'dd_transaction_id' column
+    2. When the user asks about the number of orders, it means the number of entries with a unique 'dd_order_id'
+    3. If the user asks about order status, use the 'dd_final_order_status' column. The values are : Delivered, Picked Up, Cancelled
+    4. If the user asks about store id or business id for locations, just show the id as xxxxxxxxxxxx instead of xxx,xxx,xxx. Do not add any formatting because id is considered as a string of numbers & not a numerical value. Hence, do not add any formatting in this case.
+
+VII. Rules about ue_transactions database:
+    1. There are 2 types of entries : the first kind have a valid 'workflow_id' & the second kind is where 'workflow_id' is null. The first kind are orders placed & the second kind are usually refunds, ad spend, misc fee
+    2. When the user asks about number of orders, make sure that you return the orders where 'workflow_id' is not null.
+    3. If the user asks about reconcilliations, return entries where 'workflow_id' is null. In these cases the amount of money spent is in the 'other_payments' column. In this case, use payout_date for dates instead of order_date.
+    4. For are types of reconcilliations, money spent is in the 'other_payments' column:
+        i. If the user asks about Ad spend, return the entries where 'other_payments_description' = 'Ad Spend'. The money is always shown in negative in this case.
+[DO NOT CONSIDER] ii. If the user asks about refunds, return the entries where 'other_payments_description' = 'Restaurant refunds'. [DO NOT CONSIDER]
+        iii. If the user asks about misc fee, return the entries where 'other_payments_description' = 'Other fee'. The money is always shown in negative in this case.
+        iv. If the user asks about bag fee, return the entries where 'other_payments_description' = 'Bag fee'. 
+        v. If the user asks about service fee, return the entries where 'other_payments_description' = 'Service fee adjustment'.
+        vi. If the user asks about remittence fee, return the entries where 'other_payments_description' = 'Accelerated Remittance Fee'.
+        vii. If the user asks about ad credits, return the entries where 'other_payments_description' = 'Ad Credits'.
+    5. When the user asks about sales or gross sales or revenue, refer to the 'sales_excl_tax' column
+    6. When the user asks about net sales, refer to 'sales_incl_tax' column
+    7. If the user asks about refunds, refer to 'refunds_excl_tax' column. When user asks about how many orders were refunded, it's about the times when the value in 'refunds_excl_tax' column != 0. When outputting values for amount refunded, use negative numbers.
+    8. If the user asks about uber one members or uber eats pass members, use cases where customer_uber_membership_status IN ('Eats Pass member', 'Uber One member')
+    9. If the user asks about pickup vs delivery, use the 'dining_mode' column. It's values are "Pickup" & "Delivery - Partner Using Uber App"
+    10. If the user asks about order status, use the 'order_status' column. The values are : "Refund Disputed", "Unfulfilled", "Completed", "Canceled", "Refund"
+    11. If the user asks about discounts, they mean promotions
+    12. Uber's fee is the marketing_fee 
+
+VIII. Rules for identifying locations:
+    1. The SAZZ locations are : Cupertino, Dublin, Evergreen, Milpitas, Pleasanton, Palo Alto, Sunnyvale, Warm Springs only.
+    2. Bay Area Locations are : Berkeley, Cupertino, Dublin, Evergreen, Fremont, Milpitas, Pleasanton, Palo Alto, Redwood City, San Jose (Capitol Ave), San Ramon, South San Francisco, Sunnyvale, Warm Springs, Union Ave
+    3. Texas Locations : Cedar Park, Frisco, Cypress
+    4. Sacramento Locations: Folsom, Natomas, Roseville
+
+IX. Sysco Databases rules:
+    1. Curry Pizza House spends receives raw items through Sysco. The 'sysco_invoices' database shows which location ordered which item when while the 'sysco_price_file' database shows the price of an item for a certain date (which is shown in the 'date' column of this database). 
+    2. Columns for 'sysco_invoices' database: item_id, invoice_id, invoice_date, location, sysco_customer_id, supc_item_number, item_name, brand, vendor_name, item_catg_desc, order_number, quantity_ordered, price.
+    3. Columns for 'sysco_price_file' database: opco, date, supc_item_number, line_number, external_upc, manufacturer_product_code, sysco_category, brand, item_description, pack, size, size_description, gross_weight, catch_weight_indicator, purchase_units, price_per_case, taxable, group_sequence, stock_type_indicator, warehouse_slot_number, substitute_supc_number.
+    4. Opco is a operational area which can include multiple locations. The opcos are: Central Texas, North Texas, San Francisco, Sacramento, Riverside, Las Vegas, Seattle, Houston.
+    5. Here is more information on which locations fall under which opco:
+        i. Central Texas: Cedar Park
+        ii. North Texas: Frisco
+        iii. San Francisco: Bombay, Berkeley, Cupertino, Dublin, Evergreen, Fremont, Manteca, Milpitas, Palo Alto, Redwood City, San Jose (Capitol Ave), San Ramon, Sunnyvale, Union Ave, Warm Springs
+        iv. Sacramento: Folsom, Natomas, Roseville
+        v. Riverside: Lake Forest 
+        vi. Las Vegas: Las Vegas
+        vii. Seattle: Hillsboro, Kent
+        viii. Houston: Cypress
+    6. For 'sysco_invoices' table, "CHGS FOR FUEL SURCHARGE" is not an item. It is only a surcharge. Do not include it.
+    7. When a user askes for how many cases of an item a location bought, search for the user input (typecast it in upper case) in the item name column of sysco_invoices table. 
+
+X. Rules for coupon codes:
+    1. When the user asks which were the most successful coupons, this means to return the coupons which brought in the highest revenue
+    2. If the user doesn't specify coupon code by platform - Toast or Olo - assume that it means for all platforms
+    3. In toast & olo databases, 'discount' is the dollar value of the discount given & 'coupon' is the discount / coupon code
+
+XI. Rules for dd_campaigns database:
+    1. If the user asks for number of orders, use the 'orders' column
+    2. When user asks store info, use store name as the value unique to identify stores
+    3. If the user asks about discount given away, use the 'customer_discount' column
+
+XII. Rules about Royalty 
+    1. Curry Pizza House charges each location royalty which is a percentage of gross sales i.e. the subtotal. In case of royalty, gross sales is sales across all platforms unless the user specifically asks about a platform. 
+    2. For following locations, royalty is 5% of gross sales : Cedar Park, Cupertino, Milpitas, Palo Alto, Roseville, San Ramon, Union Ave, Warm Springs
+    3. For every other location, royalty is 6% of the gross sale.
